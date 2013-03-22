@@ -5,6 +5,7 @@ import rospy
 from geometry_msgs.msg import Twist
 
 import sys, select, termios, tty
+import time
 
 def getKey():
     tty.setraw(sys.stdin.fileno())
@@ -32,7 +33,7 @@ if __name__=="__main__":
     rospy.init_node('psywerx')
     pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist)
 
-    speed = .2
+    speed = 1.
     turn = 1
     x = 0
     th = 0
@@ -51,10 +52,40 @@ if __name__=="__main__":
         twist.linear.x = speed * x; twist.linear.y = 0; twist.linear.z = 0
         twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = turn * th
         pub.publish(twist)
+    
+
+    x = moveBindings['8'][0]
+    th = moveBindings['8'][1]
+    twist.linear.x = speed * x; twist.linear.y = 0; twist.linear.z = 0
+    twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = turn * th
+    now = time.time()
+    future = now + 3.5
+    while time.time() < future:
+        pub.publish(twist)
+        time.sleep(0.1)
+
+    x = moveBindings['9'][0]
+    th = moveBindings['9'][1]
+    twist.linear.x = speed * x; twist.linear.y = 0; twist.linear.z = 0
+    twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = turn * th
+    now = time.time()
+    future = now + 1.6
+    while time.time() < future:
+        pub.publish(twist)
+        time.sleep(0.1)
+
+    x = moveBindings['8'][0]
+    th = moveBindings['8'][1]
+    twist.linear.x = speed * x; twist.linear.y = 0; twist.linear.z = 0
+    twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = turn * th
+    now = time.time()
+    future = now + 5.4
+    while time.time() < future:
+        pub.publish(twist)
+        time.sleep(0.1)
 
     twist.linear.x = 0; twist.linear.y = 0; twist.linear.z = 0
     twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = 0
     pub.publish(twist)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-
