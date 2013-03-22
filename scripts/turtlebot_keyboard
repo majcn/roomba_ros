@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('psywerx')
+import rospy
+from geometry_msgs.msg import Twist
+
+import sys, select, termios, tty
+
+def getKey():
+    tty.setraw(sys.stdin.fileno())
+    rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
+    key = ''
+    if rlist:
+        key = sys.stdin.read(1)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    return key
+
+moveBindings = {
+    '7': (1,1),
+    '8': (1,0),
+    '9': (1,-1),
+    '4': (0,1),
+    '5': (0,0),
+    '6': (0,-1),
+    '1': (-1,-1),
+    '2': (-1,0),
+    '3': (-1,1),
+}
+
+if __name__=="__main__":
+    settings = termios.tcgetattr(sys.stdin)
+    rospy.init_node('psywerx')
+    pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist)
+
+    speed = .2
+    turn = 1
+    x = 0
+    th = 0
+
+    twist = Twist()
+    while True:
+        key = getKey()
+        if key in moveBindings.keys():
+            x = moveBindings[key][0]
+            th = moveBindings[key][1]
+        elif key == '':
+            pass
+        elif key == '\x03':
+            break
+
+        twist.linear.x = speed * x; twist.linear.y = 0; twist.linear.z = 0
+        twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = turn * th
+        pub.publish(twist)
+
+    twist.linear.x = 0; twist.linear.y = 0; twist.linear.z = 0
+    twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = 0
+    pub.publish(twist)
+
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+
