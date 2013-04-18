@@ -3,10 +3,10 @@ project(psywerx)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 
-catkin_package(
-   INCLUDE_DIRS include
-)
+#catkin_package(
+#   INCLUDE_DIRS include
+#)
 
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-)
+#include_directories(include
+#  ${catkin_INCLUDE_DIRS}
+#)
