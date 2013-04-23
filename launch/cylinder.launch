@@ -1,0 +1,14 @@
+<launch>
+  <node pkg="psywerx" type="cylinder" name="cylinder_detection" output="screen">
+    <param name="planeMaxIterations" value="100" type="int"/>
+    <param name="planeNormalDistanceWeight" value="0.1" type="double"/>
+    <param name="planeDistanceThreshold" value="0.01" type="double"/>
+
+    <param name="maxIterations" value="100" type="int"/>
+    <param name="normalDistanceWeight" value="0.1" type="double"/>
+    <param name="distanceThreshold" value="0.3" type="double"/>
+    <param name="minRadiusLimits" value="0.1" type="double"/>
+    <param name="maxRadiusLimits" value="0.3" type="double"/>
+    <remap from="~/input" to="/camera/depth_registered/points"/>
+  </node>
+</launch>
