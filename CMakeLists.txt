@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(psywerx)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs pcl pcl_ros sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs sensor_msgs pcl pcl_ros)
 
 catkin_package(
 #   INCLUDE_DIRS include

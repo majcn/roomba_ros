@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+import roslib; roslib.load_manifest('sound_play')
+import rospy
+from zbar_ros.msg import Marker
+from sound_play.libsoundplay import SoundClient
+
+
+def callback(data):
+    global soundhandle
+    soundhandle.say(data.data, 'voice_kal_diphone')
+    rospy.sleep(1)
+    rospy.signal_shutdown('success') 
+	
+rospy.init_node('psywerx_qr', anonymous=True)
+soundhandle = SoundClient()
+rospy.sleep(1)
+rospy.Subscriber('markers', Marker, callback)
+rospy.spin()
