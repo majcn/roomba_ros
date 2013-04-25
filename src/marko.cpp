@@ -7,6 +7,8 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
 
+#include "rgb2hsv.h"
+
 typedef pcl::PointXYZRGB PointT;
 
 ros::Publisher pub;
@@ -95,9 +97,28 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input) {
     
     pcl::PointCloud<PointT>::Ptr cloud_cluster_local (new pcl::PointCloud<PointT>);
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it) {
+        struct rgb_color rgb;
+        rgb.r = 0;    
+        rgb.g = 0;
+        rgb.b = 0;
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++) {
-            cloud_cluster_local->points.push_back (cloud_filtered2->points[*pit]); 
+            PointT p = cloud_filtered2->points[*pit]; 
+            cloud_cluster_local->points.push_back (p);
+            
+            uint32_t prgb = *reinterpret_cast<int*>(&p.rgb);
+            rgb.r += (prgb >> 16) & 0x0000ff;
+            rgb.g += (prgb >> 8) & 0x0000ff;
+            rgb.b += (prgb) & 0x0000ff; 
         }
+        rgb.r /= cloud_cluster_local->points.size();
+        rgb.g /= cloud_cluster_local->points.size();
+        rgb.b /= cloud_cluster_local->points.size();
+        
+        struct hsv_color hsv;
+        hsv = rgb_to_hsv(rgb);
+        std::cout << rgb.r << " " << rgb.g << " " << rgb.b << std::endl;
+        std::cout << hsv.hue << " " << hsv.sat << " " << hsv.val << std::endl << std::endl;      
+
         break;
     }
 

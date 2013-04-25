@@ -24,5 +24,5 @@ add_executable(cylinder src/cylinder_segmentation.cpp)
 target_link_libraries(cylinder ${catkin_LIBRARIES})
 
 add_executable(marko src/marko.cpp)
-#set_target_properties(marko PROPERTIES COMPILE_FLAGS -DDEBUG)
+set_target_properties(marko PROPERTIES COMPILE_FLAGS -DDEBUG)
 target_link_libraries(marko ${catkin_LIBRARIES})

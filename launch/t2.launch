@@ -1,6 +1,8 @@
 <launch>
   <include file="$(find zbar_ros)/launch/detector.launch" />
   <include file="$(find sound_play)/soundplay_node.launch" />
-  <node pkg="psywerx" type="marko" name="psywerx_pointcloud" output="screen" />
+  <node pkg="psywerx" type="marko" name="psywerx_pointcloud" output="screen" >
+    <remap from="~input" to="/camera/depth_registered/points" />
+  </node>
   <node pkg="psywerx" type="talk_qr" name="psywerx_talk" output="screen" />
 </launch>
