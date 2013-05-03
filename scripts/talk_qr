@@ -6,16 +6,18 @@ from sound_play.libsoundplay import SoundClient
 
 def callback(data):
     global soundhandle
-    soundhandle.say(data.data, 'voice_kal_diphone')
+    global qr_set
+    if data.data in qr_set:
+        soundhandle.say(data.data, 'voice_kal_diphone')
+    qt_set.add(data.data)
     rospy.sleep(1)
-    print
-    print '  we found QR: "%s"' % data.data
-    print '  talk and exit'
-    print
-    rospy.signal_shutdown('success') 
+    if len(qr_set) == 2:
+        rospy.signal_shutdown('success') 
 	
 rospy.init_node('psywerx_qr', anonymous=True)
 soundhandle = SoundClient()
+qr_set = set()
+
 rospy.sleep(1)
 rospy.Subscriber('markers', Marker, callback)
 rospy.spin()
