@@ -4,55 +4,57 @@ import rospy
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib import SimpleActionClient, GoalStatus
 
+import tf
+from geometry_msgs.msg import PoseStamped
+from copy import deepcopy
+
+def move(poseStamped):
+    global client
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.get_rostime()
+
+    goal.target_pose.pose.position.x = poseStamped.pose.position.x
+    goal.target_pose.pose.position.y = poseStamped.pose.position.y
+    goal.target_pose.pose.position.z = 0.0
+    goal.target_pose.pose.orientation.w = 1.0
+
+    client.send_goal(goal)
+    client.wait_for_result()
+    return client.get_state() == GoalStatus.SUCCEEDED
+
+def callback(data):
+    global listener
+    data.pose.position.z -= 0.5
+    pt_transformedORIG = listener.transformPose("map", data);
+
+    while(True):
+        move(pt_transformedORIG)
+
+        pt_1 = deepcopy(data)
+        pt_1.pose.position.x -= 0.5
+        move(listener.transformPose("map", pt_1))
+
+        pt_2 = deepcopy(data)
+        pt_2.pose.position.z += 1.2
+        move(listener.transformPose("map", pt_2))
+
+        pt_3 = deepcopy(data)
+        pt_3.pose.position.x += 0.5
+        move(listener.transformPose("map", pt_3))
+
+    rospy.signal_shutdown("DONE")
+
 rospy.init_node('psywerx_navigate')  
 client = SimpleActionClient('move_base', MoveBaseAction)
 client.wait_for_server()
 
-goal = MoveBaseGoal()
-goal.target_pose.header.frame_id = "map"
-goal.target_pose.header.stamp = rospy.get_rostime()
+listener = tf.TransformListener()
+rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
+rospy.spin()
 
-goal.target_pose.pose.position.x = 4.4795235571
-goal.target_pose.pose.position.y = 2.56725668894
-goal.target_pose.pose.position.z = 0
-goal.target_pose.pose.orientation.w = 1.0
-
-
-#goal.target_pose.pose.position.x = 3
-#goal.target_pose.pose.position.y = 3
-#goal.target_pose.pose.position.z = 0
-#goal.target_pose.pose.orientation.w = 1.0
-#
-#client.send_goal(goal)
-#client.wait_for_result()
-#
-#goal.target_pose.pose.position.x = 3.5
-#goal.target_pose.pose.position.y = 3.5
-#goal.target_pose.pose.position.z = 0
-#goal.target_pose.pose.orientation.w = 1.0
-#
-#client.send_goal(goal)
-#client.wait_for_result()
-#
-#goal.target_pose.pose.position.x = 3
-#goal.target_pose.pose.position.y = 3.5
-#goal.target_pose.pose.position.z = 0
-#goal.target_pose.pose.orientation.w = 1.0
-#
-#client.send_goal(goal)
-#client.wait_for_result()
-#
-#
-#
-#goal.target_pose.pose.position.x = 3
-#goal.target_pose.pose.position.y = 3
-#goal.target_pose.pose.position.z = 0
-#goal.target_pose.pose.orientation.w = 1.0
-#
-#
-client.send_goal(goal)
-client.wait_for_result()
-#
-print client.get_state() == GoalStatus.SUCCEEDED
-#
-#rospy.spin()
+#    xx,yy,zz,ww = quaternion_from_euler(0.0, 0.0, math.pi/2)
+#    goal.target_pose.pose.orientation.x = xx
+#    goal.target_pose.pose.orientation.y = yy
+#    goal.target_pose.pose.orientation.z = zz
+#    goal.target_pose.pose.orientation.w = ww
