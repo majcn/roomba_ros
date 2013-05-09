@@ -1,0 +1,17 @@
+#!/usr/bin/env python  
+import roslib
+import rospy
+import tf
+from geometry_msgs.msg import PoseStamped
+
+def callback(data):
+    pt_transformed = listener.transformPose("map", data);
+    print pt_transformed.point.x
+    print pt_transformed.point.y
+    print pt_transformed.point.z
+    print
+    
+rospy.init_node('n')
+listener = tf.TransformListener()
+rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
+rospy.spin()

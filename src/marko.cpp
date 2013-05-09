@@ -7,6 +7,8 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
 
+#include <geometry_msgs/PoseStamped.h>
+
 #include "rgb2hsv.h"
 
 typedef pcl::PointXYZRGB PointT;
@@ -15,6 +17,7 @@ ros::Publisher pub;
 #ifdef DEBUG
     ros::Publisher pubDebug;
 #endif
+ros::Publisher pubPoint;
 
 void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input) {
     // Return
@@ -116,27 +119,40 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input) {
         
         struct hsv_color hsv;
         hsv = rgb_to_hsv(rgb);
-        std::cout << rgb.r << " " << rgb.g << " " << rgb.b << std::endl;
-        std::cout << hsv.hue << " " << hsv.sat << " " << hsv.val << std::endl << std::endl;      
 
         break;
     }
 
     pcl::toROSMsg (*cloud_cluster_local, *res);
     res->header = input->header;
+    //std::cout << "Publishing header files" << std::endl;
     pub.publish (res);
+
+    geometry_msgs::PoseStamped rosPoint;
+    if(cloud_cluster_local->points.size() > 50) {	
+        rosPoint.pose.position.x = cloud_cluster_local->points[1].x;
+        rosPoint.pose.position.y = cloud_cluster_local->points[1].y;
+        rosPoint.pose.position.z = cloud_cluster_local->points[1].z;
+        rosPoint.pose.orientation.x = 0;
+        rosPoint.pose.orientation.y = 1;
+        rosPoint.pose.orientation.z = 0;
+        rosPoint.pose.orientation.w = 0.5;
+        rosPoint.header = input->header;
+        pubPoint.publish(rosPoint);
+    }       
 }
 
 int main (int argc, char** argv) {
     // Initialize ROS
     ros::init (argc, argv, "psywerx");
     ros::NodeHandle nh ("~");
-    
+
     // Create a ROS subscriber for the input point cloud
     ros::Subscriber sub = nh.subscribe ("input", 1, cloud_cb);
     
     // Create a ROS publisher for the output point cloud
     pub = nh.advertise <pcl::PointCloud<PointT> > ("output", 1);
+    pubPoint = nh.advertise <geometry_msgs::PoseStamped > ("outputPoint", 1);
     #ifdef DEBUG
         pubDebug = nh.advertise <pcl::PointCloud<PointT> > ("outputDebug", 1);
     #endif

@@ -7,12 +7,10 @@ from sound_play.libsoundplay import SoundClient
 def callback(data):
     global soundhandle
     global qr_set
-    if data.data in qr_set:
+    if not data.data in qr_set:
         soundhandle.say(data.data, 'voice_kal_diphone')
-    qt_set.add(data.data)
+    qr_set.add(data.data)
     rospy.sleep(1)
-    if len(qr_set) == 2:
-        rospy.signal_shutdown('success') 
 	
 rospy.init_node('psywerx_qr', anonymous=True)
 soundhandle = SoundClient()
