@@ -8,10 +8,10 @@ import tf
 from geometry_msgs.msg import PoseStamped
 from copy import deepcopy
 
-def move(poseStamped):
+def move(poseStamped, target_frame="map"):
     global client
     goal = MoveBaseGoal()
-    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.frame_id = target_frame
     goal.target_pose.header.stamp = rospy.get_rostime()
 
     goal.target_pose.pose.position.x = poseStamped.pose.position.x
@@ -49,12 +49,10 @@ rospy.init_node('psywerx_navigate')
 client = SimpleActionClient('move_base', MoveBaseAction)
 client.wait_for_server()
 
+#premakni se 1.5m naprej
+#move(1.5, 0, "base_link")
+
 listener = tf.TransformListener()
 rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
 rospy.spin()
 
-#    xx,yy,zz,ww = quaternion_from_euler(0.0, 0.0, math.pi/2)
-#    goal.target_pose.pose.orientation.x = xx
-#    goal.target_pose.pose.orientation.y = yy
-#    goal.target_pose.pose.orientation.z = zz
-#    goal.target_pose.pose.orientation.w = ww
