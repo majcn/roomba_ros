@@ -8,51 +8,71 @@ import tf
 from geometry_msgs.msg import PoseStamped
 from copy import deepcopy
 
+import sys
+
+points = {
+    1: ( 0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
+    2: (-0.5, 0.0, 0.0, 0.0, 0.0, 1.0),
+    3: (-0.5, 0.5, 0.0, 0.0, 0.0, 1.0),
+    4: (-0.5, 1.0, 0.0, 0.0, 0.0, 1.0),
+    5: ( 0.0, 1.0, 0.0, 0.0, 0.0, 1.0),
+    6: ( 0.5, 1.0, 0.0, 0.0, 0.0, 1.0),
+    7: ( 0.5, 0.5, 0.0, 0.0, 0.0, 1.0),
+    8: ( 0.5, 0.0, 0.0, 0.0, 0.0, 1.0)
+}
+
 def move(poseStamped, target_frame="map"):
     global client
     goal = MoveBaseGoal()
-    goal.target_pose.header.frame_id = target_frame
-    goal.target_pose.header.stamp = rospy.get_rostime()
+    print poseStamped.header.frame_id
+    goal.target_pose.header.frame_id = poseStamped.header.frame_id #TODO: CHECK!!! target_frame
+    goal.target_pose.header.stamp = rospy.Time.now()
 
     goal.target_pose.pose.position.x = poseStamped.pose.position.x
     goal.target_pose.pose.position.y = poseStamped.pose.position.y
     goal.target_pose.pose.position.z = 0.0
-    goal.target_pose.pose.orientation.w = 1.0
+    goal.target_pose.pose.orientation.x = poseStamped.pose.orientation.x
+    goal.target_pose.pose.orientation.y = poseStamped.pose.orientation.y
+    goal.target_pose.pose.orientation.z = poseStamped.pose.orientation.z
+    goal.target_pose.pose.orientation.w = poseStamped.pose.orientation.w
 
     client.send_goal(goal)
     client.wait_for_result()
     return client.get_state() == GoalStatus.SUCCEEDED
 
-def callback(data):
+def transformFromCameraToMap(origPoint, offset_x, offset_z, ox, oy, oz, ow):
     global listener
+    p = deepcopy(origPoint)
+    p.pose.position.x += offset_x
+    p.pose.position.z += offset_z
+    print p.header.frame_id #TODO: CHECK!!!
+    listener.waitForTransform(p.header.frame_id, "/map", rospy.Time.now(), rospy.Duration(10.0))
+    tp = listener.transformPose("map", p)
+    tp.pose.orientation.x = ox
+    tp.pose.orientation.y = oy
+    tp.pose.orientation.z = oz
+    tp.pose.orientation.w = ow
+    return tp
+
+def callback(data):
     data.pose.position.z -= 0.5
-    pt_transformedORIG = listener.transformPose("map", data);
 
-    while(True):
-        move(pt_transformedORIG)
-
-        pt_1 = deepcopy(data)
-        pt_1.pose.position.x -= 0.5
-        move(listener.transformPose("map", pt_1))
-
-        pt_2 = deepcopy(data)
-        pt_2.pose.position.z += 1.2
-        move(listener.transformPose("map", pt_2))
-
-        pt_3 = deepcopy(data)
-        pt_3.pose.position.x += 0.5
-        move(listener.transformPose("map", pt_3))
-
-    rospy.signal_shutdown("DONE")
+    while True:
+        for arg in sys.argv[1:]:
+            move(transformFromCameraToMap(data, *points[arg])
+    #rospy.signal_shutdown("DONE")
 
 rospy.init_node('psywerx_navigate')  
 client = SimpleActionClient('move_base', MoveBaseAction)
 client.wait_for_server()
 
 #premakni se 1.5m naprej
-#move(1.5, 0, "base_link")
+m = PoseStamped()
+m.pose.position.x = 1.5
+m.pose.orientation.w = 1.0
+m.header.frame_id = "base_link"
+move(m, "base_link")
 
 listener = tf.TransformListener()
 rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
 rospy.spin()
-
