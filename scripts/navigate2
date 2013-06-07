@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+import roslib; roslib.load_manifest('move_base_msgs')
+import rospy
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib import SimpleActionClient, GoalStatus
+
+import tf
+from geometry_msgs.msg import PoseStamped
+from copy import deepcopy
+
+import sys
+
+points = {
+    "1": ( 0.0, 0.0, 0.0, 0.0, -0.856375438851, 0.516353665362),
+    "2": (-0.5, 0.0, 0.0, 0.0, 0.974899042305, -0.222647383352),
+    "3": (-0.5, 0.3, 0.0, 0.0, 0.969342953931, 0.245711696231),
+    "4": (-0.5, 1.0, 0.0, 0.0, 0.736656280611, 0.676267346718),
+    "5": ( 0.0, 1.0, 0.0, 0.0, 0.512243727242, 0.858840127091),
+    "6": ( 0.5, 1.0, 0.0, 0.0, 0.244970765239, 0.969530465833),
+    "7": ( 0.5, 0.5, 0.0, 0.0, -0.259638318641, 0.965705930133),
+    "8": ( 0.5, 0.0, 0.0, 0.0, -0.670306975309, 0.74208392979)
+}
+
+def move(poseStamped, target_frame="map"):
+    global client
+    goal = MoveBaseGoal()
+    #print poseStamped.header.frame_id
+    goal.target_pose.header.frame_id = target_frame
+    goal.target_pose.header.stamp = rospy.get_rostime()
+
+    goal.target_pose.pose.position.x = poseStamped.pose.position.x
+    goal.target_pose.pose.position.y = poseStamped.pose.position.y
+    goal.target_pose.pose.position.z = 0.0
+    goal.target_pose.pose.orientation.x = poseStamped.pose.orientation.x
+    goal.target_pose.pose.orientation.y = poseStamped.pose.orientation.y
+    goal.target_pose.pose.orientation.z = poseStamped.pose.orientation.z
+    goal.target_pose.pose.orientation.w = poseStamped.pose.orientation.w
+
+    client.send_goal(goal)
+    client.wait_for_result()
+    return client.get_state() == GoalStatus.SUCCEEDED
+
+def transformFromCameraToMap(origPoint, offset_x, offset_z, ox, oy, oz, ow):
+    global listener
+    p = deepcopy(origPoint)
+    p.pose.position.x += offset_x
+    p.pose.position.z += offset_z
+    #listener.waitForTransform("/camera_rgb_optical_frame", "/map", rospy.Time.now(), rospy.Duration(10.0))
+    #tp = listener.transformPose("map", p)
+    #tp.pose.orientation.x = ox
+    #tp.pose.orientation.y = oy
+    #tp.pose.orientation.z = oz
+    #tp.pose.orientation.w = ow
+    if tf2.frameExists("/camera_rgb_optical_frame") and tf2.frameExists("/map"):
+        t =tf2.getLatestCommonTime("/camera_rgb_optical_frame", "/map")
+        position, quaternion = tf2.lookupTransform("/camera_rgb_optical_frame", "/map", t)
+        print position, quaternion
+       
+    return position
+    #return tp
+
+def callback(data):
+#    global pointSet
+#    global pointFirst
+#    if not pointSet:
+#        pointFirst = data
+#        pointSet = True
+#    else:
+#        data = pointFirst
+#    data.pose.position.z -= 0.5
+
+    moves = []
+    for arg in sys.argv[1:]:
+        moves.append(transformFromCameraToMap(data, *points[arg]))
+    while True:
+        for m in moves:
+            move(m)
+
+
+rospy.init_node('psywerx_navigate')
+client = SimpleActionClient('move_base', MoveBaseAction)
+client.wait_for_server()
+pointSet = False
+pointFirst = PoseStamped()
+
+#premakni se 1.5m naprej
+#m = PoseStamped()
+#m.pose.position.x = 2.0
+#m.pose.orientation.w = 1.0
+#m.header.frame_id = "base_link"
+#move(m, "base_link")
+
+tf2 = tf.TransformListener()
+rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
+rospy.spin()
+#include file="$(find zbar_ros)/launch/detector.launch" />
