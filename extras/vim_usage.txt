@@ -1,0 +1,7 @@
+// delete line
+dd
+// delete n lines
+d2d
+
+// ctrl+z
+u

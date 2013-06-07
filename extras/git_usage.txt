@@ -1,0 +1,8 @@
+git fetch -v   //potegne dol kaj je updated na repotu
+git rebase     // skoci na vrh
+// pushaj
+git push origin develop
+
+git add (kar hocs)   // git add . // doda cel dir
+git commit -m "message"
+git push (nimas nobenga msgja)
