@@ -1,0 +1,26 @@
+
+En dan je treba v učilnici pofotkat objekte pod lučjo, ker je ferns ful crap pri različnih svetlobnih pogojih.
+
+- Premaknemo do konca ucilnice in se obrnemo proti startu
+- Naredimo segmentacijo in clustering, zaznamo cilinder
+- Ubijemo c++ skripto in zaznamo obe QR kodi
+
+while !doubleSuccess
+	 Hardcoded preiskava prostora
+	if modelDetected:
+		transformacija iz camera/rgb/optical v base, (done)
+		nastavi cilj na objekt.z - neki, tolk da se ne zaletimo
+		text_to_speech, ko pride do objekta (done)
+		skenslamo detekcijo prvega objekta
+		zaženi iskanje drugega
+		continue; // ponovimo zanko
+	else: 
+		ugasnemo iskanje prvega
+		prižgemo iskanje drugega
+		continue;
+		
+		
+Hardcoded preiskava prostora:
+	Postavimo dva cilja okoli stacionarnih stožcev (done)
+	Obišče vse stacionarne stožce 
+	Ko pride na cilj naredi 360 (teleop fora, angle velocity)
