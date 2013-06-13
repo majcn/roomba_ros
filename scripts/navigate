@@ -4,6 +4,53 @@ import rospy
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib import SimpleActionClient, GoalStatus
 from zbar_ros.msg import Marker
+from ferns_ros.msg import ModelStatus
+
+
+
+grafa = ["GRAFA1", "GRAFA2", "GRAFA3", "GRAFA4"]
+hp = ["HP1", "HP2", "HP3", "HP4", "HP5", "HP6"]
+loop = ["LOOP1", "LOOP2", "LOOP3", "LOOP4", "LOOP5", "LOOP6", "LOOP7", "LOOP8"]
+sj = ["SJ1", "SJ2", "SJ3", "SJ4", "SJ5", "SJ6"]
+tp = ["TP1", "TP2", "TP3", "TP4", "TP5"]
+models = [maticna, hp, loop, sj, tp]
+model_names = ["grafa", "hp", "loop", "sj", "tp"]
+
+def callbackFerns(data):
+    global lock
+    lock = False
+
+rospy.sleep(1.0)
+lock = False
+
+def activateFerns(data):
+    activated = [model_names.index(i) for i in data if i in model_names]
+    #print activated
+
+    for i in range(len(models)):
+        for model in models[i]:
+            m = ModelStatus()
+            m.model = model
+            if i in activated:
+                m.loaded = True
+                m.active = True
+            else:
+                m.loaded = False
+                m.active = False
+            while True:
+                if not lock:
+                    break
+            pub.publish(m)
+            lock = True
+            rospy.sleep(0.1)
+
+
+
+
+
+
+
+
 
 import tf
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
@@ -126,4 +173,7 @@ rospy.sleep(3.0)
 rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
 rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, callback2)
 rospy.Subscriber('markers', Marker, callbackQR)
+rospy.Subscriber("/get_status", ModelStatus, callbackFerns)
+pub = rospy.Publisher('/set_status', ModelStatus)
+
 rospy.spin()
