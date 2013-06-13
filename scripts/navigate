@@ -26,6 +26,18 @@ points = {
     "8": ( 0.5, 0.0, 0.0, 0.0, -0.670306975309, 0.74208392979)
 }
 
+def moveOnMap(x, y):
+    global currentPosition
+    m = PoseStamped()
+    m.pose.position.x = x    
+    m.pose.position.x = y
+    m.pose.orientation.x = currentPosition.pose.pose.orientation.x
+    m.pose.orientation.y = currentPosition.pose.pose.orientation.y
+    m.pose.orientation.z = currentPosition.pose.pose.orientation.z
+    m.pose.orientation.w = currentPosition.pose.pose.orientation.w
+    m.header.frame_id = "map"
+    move(m)    
+
 def move(poseStamped, target_frame="map"):
     global client
     goal = MoveBaseGoal()
