@@ -148,7 +148,7 @@ def callback(data):
         moves = []
         for arg in sys.argv[1:]:
             moves.append(transformFromCameraToMap(data, *points[arg]))
-        while len(qrCodes):
+        while len(qrCodes) == 2:
             for m in moves:
                 move(m)
     checkQR = False
