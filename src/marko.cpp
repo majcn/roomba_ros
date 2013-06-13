@@ -101,6 +101,7 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input) {
     
     pcl::PointCloud<PointT>::Ptr cloud_cluster_local (new pcl::PointCloud<PointT>);
     geometry_msgs::PoseStamped rosPoint;
+    int minZindex = -1;
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it) {
         struct rgb_color rgb;
         rgb.r = 0;
@@ -119,7 +120,7 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input) {
         rgb.g /= cloud_cluster_local->points.size();
         rgb.b /= cloud_cluster_local->points.size();
 
-        int minZindex = -1;
+        minZindex = -1;
         for(int i=0; i<cloud_cluster_local->points.size(); i++) {
             if(cloud_cluster_local->points.size() > 50) {
                 if(minZindex < 0 || cloud_cluster_local->points[minZindex].z > cloud_cluster_local->points[i].z) {

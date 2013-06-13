@@ -8,24 +8,26 @@ from ferns_ros.msg import ModelStatus
 
 
 
-grafa = ["GRAFA1", "GRAFA2", "GRAFA3", "GRAFA4"]
-hp = ["HP1", "HP2", "HP3", "HP4", "HP5", "HP6"]
-loop = ["LOOP1", "LOOP2", "LOOP3", "LOOP4", "LOOP5", "LOOP6", "LOOP7", "LOOP8"]
-sj = ["SJ1", "SJ2", "SJ3", "SJ4", "SJ5", "SJ6"]
-tp = ["TP1", "TP2", "TP3", "TP4", "TP5"]
-models = [maticna, hp, loop, sj, tp]
+grafa = ["GRAFA1", "GRAFA3"]
+hp = ["HP1", "HP2"]
+loop = ["LOOP1", "LOOP5"]
+sj = ["SJ1", "SJ5"]
+tp = ["TP2", "TP3"]
+models = [grafa, hp, loop, sj, tp]
 model_names = ["grafa", "hp", "loop", "sj", "tp"]
+
+
+lock = False
 
 def callbackFerns(data):
     global lock
     lock = False
 
 rospy.sleep(1.0)
-lock = False
 
 def activateFerns(data):
     activated = [model_names.index(i) for i in data if i in model_names]
-    #print activated
+    print activated
 
     for i in range(len(models)):
         for model in models[i]:
@@ -138,13 +140,13 @@ def callback(data):
 #        pointSet = True
 #    else:
 #        data = pointFirst
-#    data.pose.position.z -= 0.5
+    data.pose.position.z -= 0.2
 
     global qrCodes
     moves = []
     for arg in sys.argv[1:]:
         moves.append(transformFromCameraToMap(data, *points[arg]))
-    while len(qrCodes) < 2:
+    while len(qrCodes) < 1:
         for m in moves:
             move(m)
     
@@ -160,7 +162,7 @@ pointFirst = PoseStamped()
 
 #premakni se 1.5m naprej
 m = PoseStamped()
-m.pose.position.x = 2.0
+m.pose.position.x = 1.0
 m.pose.orientation.w = 1.0
 m.header.frame_id = "base_link"
 move(m, "base_link")
