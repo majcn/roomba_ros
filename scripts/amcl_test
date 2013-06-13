@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import rospy
+import tf
+
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
+
+def callback2(data):
+    global t
+    print "POINT", data.pose.position.x, data.pose.position.y, data.pose.position.z
+    tmpTime = t.getLatestCommonTime("/camera_rgb_optical_frame", "/map")
+    np = t.transformPose("map", data)
+    #position, quaternion = t.lookupTransform("/camera_rgb_optical_frame", "/map", tmpTime)
+    #np = position * data.pose.position
+    print "TRANFORM POINT", np.pose.position.x, np.pose.position.y, np.pose.position.z
+
+def callback(data):
+    print "AMCL", data.pose.pose.position.x, data.pose.pose.position.y, data.pose.pose.position.z
+
+rospy.init_node('psywerx_navigate')
+
+t = tf.TransformListener()
+
+listener = tf.TransformListener()
+rospy.sleep(5)
+rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, callback)
+rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback2)
+rospy.spin()

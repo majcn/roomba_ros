@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+#import roslib; roslib.load_manifest('psywerx')
+import rospy
+import sys
+from ferns_ros.msg import ModelStatus
+
+maticna = ["GRAFA1", "GRAFA2", "GRAFA3", "GRAFA4"]
+hp = ["HP1", "HP2", "HP3", "HP4", "HP5", "HP6"]
+loop = ["LOOP1", "LOOP2", "LOOP3", "LOOP4", "LOOP5", "LOOP6", "LOOP7", "LOOP8"]
+sj = ["SJ1", "SJ2", "SJ3", "SJ4", "SJ5", "SJ6"]
+tp = ["TP1", "TP2", "TP3", "TP4", "TP5"]
+
+models = [maticna, hp, loop, sj, tp]
+model_names = ["maticna", "hp", "loop", "sj", "tp"]
+
+def callback(data):
+    global lock
+    lock = False
+
+rospy.init_node('psywerx_ferns')
+pub = rospy.Publisher('/set_status', ModelStatus)
+rospy.Subscriber("/get_status", ModelStatus, callback)
+
+rospy.sleep(1.0)
+lock = False
+
+activated = [model_names.index(i) for i in sys.argv[1:] if i in model_names]
+print activated
+
+for i in range(len(models)):
+    for model in models[i]:
+        m = ModelStatus()
+        m.model = model
+        if i in activated:
+            m.loaded = True
+            m.active = True
+        else:
+            m.loaded = False
+            m.active = False
+        while True:
+            if not lock:
+                break
+        pub.publish(m)
+        lock = True
+        rospy.sleep(0.1)

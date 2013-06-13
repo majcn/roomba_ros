@@ -3,12 +3,17 @@ import roslib; roslib.load_manifest('move_base_msgs')
 import rospy
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib import SimpleActionClient, GoalStatus
+from zbar_ros.msg import Marker
 
 import tf
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from copy import deepcopy
 
 import sys
+
+currentPosition = PoseWithCovarianceStamped()
+qrCodes = set()
+checkQR = True
 
 points = {
     "1": ( 0.0, 0.0, 0.0, 0.0, -0.856375438851, 0.516353665362),
@@ -24,7 +29,7 @@ points = {
 def move(poseStamped, target_frame="map"):
     global client
     goal = MoveBaseGoal()
-    print poseStamped.header.frame_id
+    #print poseStamped.header.frame_id
     goal.target_pose.header.frame_id = target_frame
     goal.target_pose.header.stamp = rospy.get_rostime()
 
@@ -51,7 +56,22 @@ def transformFromCameraToMap(origPoint, offset_x, offset_z, ox, oy, oz, ow):
     tp.pose.orientation.y = oy
     tp.pose.orientation.z = oz
     tp.pose.orientation.w = ow
+    #if tf2.frameExists("/camera_rgb_optical_frame") and tf2.frameExists("/map"):
+    #    t = tf2.getLatestCommonTime("/camera_rgb_optical_frame", "/map")
+    #    position, quaternion = tf2.lookupTransform("/camera_rgb_optical_frame", "/map", t)
+    #    print position, quaternion
+    #return tf2.transformPose("/map", p)
     return tp
+
+def callbackQR(data):
+    global qrCodes
+    global checkQR
+    if checkQR:
+        qrCodes.add(data.data)
+
+def callback2(data):
+    global currentPosition
+    currentPosition = data
 
 def callback(data):
 #    global pointSet
@@ -63,12 +83,17 @@ def callback(data):
 #        data = pointFirst
 #    data.pose.position.z -= 0.5
 
-    moves = []
-    for arg in sys.argv[1:]:
-        moves.append(transformFromCameraToMap(data, *points[arg]))
-    while True:
-        for m in moves:
-            move(m)
+    global qrCodes
+    global checkQR
+    if checkQR:
+        moves = []
+        for arg in sys.argv[1:]:
+            moves.append(transformFromCameraToMap(data, *points[arg]))
+        while len(qrCodes):
+            for m in moves:
+                move(m)
+    checkQR = False
+    #TODO start moving
 
 
 rospy.init_node('psywerx_navigate')
@@ -85,5 +110,8 @@ m.header.frame_id = "base_link"
 move(m, "base_link")
 
 listener = tf.TransformListener()
+rospy.sleep(3.0)
 rospy.Subscriber("/psywerx_pointcloud/outputPoint", PoseStamped, callback)
+rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, callback2)
+rospy.Subscriber('markers', Marker, callbackQR)
 rospy.spin()
