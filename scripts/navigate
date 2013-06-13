@@ -124,9 +124,7 @@ def transformFromCameraToMap(origPoint, offset_x, offset_z, ox, oy, oz, ow):
 
 def callbackQR(data):
     global qrCodes
-    global checkQR
-    if checkQR:
-        qrCodes.add(data.data)
+    qrCodes.add(data.data)
 
 def callback2(data):
     global currentPosition
@@ -143,15 +141,14 @@ def callback(data):
 #    data.pose.position.z -= 0.5
 
     global qrCodes
-    global checkQR
-    if checkQR:
-        moves = []
-        for arg in sys.argv[1:]:
-            moves.append(transformFromCameraToMap(data, *points[arg]))
-        while len(qrCodes) == 2:
-            for m in moves:
-                move(m)
-    checkQR = False
+    moves = []
+    for arg in sys.argv[1:]:
+        moves.append(transformFromCameraToMap(data, *points[arg]))
+    while len(qrCodes) < 2:
+        for m in moves:
+            move(m)
+    
+    activateFerns(qrCodes)
     #TODO start moving
 
 

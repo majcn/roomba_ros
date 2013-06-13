@@ -2,20 +2,31 @@
 import roslib; roslib.load_manifest('sound_play')
 import rospy
 from zbar_ros.msg import Marker
+from ferns_ros.msg import Detection
 from sound_play.libsoundplay import SoundClient
 
-def callback(data):
+def callbackQR(data):
     global soundhandle
     global qr_set
     if not data.data in qr_set:
         soundhandle.say(data.data, 'voice_kal_diphone')
     qr_set.add(data.data)
     rospy.sleep(1)
+
+def callbackFerns(data):
+    global soundhandle
+    global model_set
+    if not data.model in model_set:
+        soundhandle.say(data.data, 'voice_kal_diphone')
+    model_set.add(data.model)
+    rospy.sleep(1)
 	
 rospy.init_node('psywerx_qr', anonymous=True)
 soundhandle = SoundClient()
 qr_set = set()
+model_set = set()
 
 rospy.sleep(1)
-rospy.Subscriber('markers', Marker, callback)
+rospy.Subscriber('markers', Marker, callbackQR)
+rospy.Subscriber('detection', Detection, callbackFerns)
 rospy.spin()
